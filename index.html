@@ -1,0 +1,153 @@
+<!doctype html>
+<!-- Teste HTML: página interativa simples
+     - Demonstração de layout responsivo, CSS, JS, acessibilidade e validação
+     - Salve como test.html e abra no navegador
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Teste HTML — Página Interativa</title>
+  <style>
+    :root{--accent:#2b7a78;--bg:#f6f8f9;--card:#ffffff}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial; margin:0; background:var(--bg); color:#111}
+    header{background:linear-gradient(90deg,var(--accent),#4aa3a1); color:white; padding:2rem}
+    .container{max-width:900px;margin:1.25rem auto;padding:1rem}
+    .grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+    .card{background:var(--card);border-radius:12px;padding:1rem;box-shadow:0 6px 18px rgba(0,0,0,.06)}
+    button{font-weight:600;padding:.6rem .9rem;border-radius:8px;border:none;background:var(--accent);color:#fff;cursor:pointer}
+    button.secondary{background:#efefef;color:#111}
+    footer{color:#555;padding:1rem;text-align:center}
+    input,textarea{width:100%;padding:.6rem;border:1px solid #ddd;border-radius:8px}
+    .hidden{display:none}
+    .small{font-size:.9rem;color:#555}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>Teste HTML — Página Interativa</h1>
+      <p class="small">Exemplo rápido com HTML, CSS e JavaScript — experimente os controles abaixo.</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="grid">
+      <div class="card" aria-labelledby="interactive-title">
+        <h2 id="interactive-title">Interações</h2>
+        <p class="small">Clique nos botões para ver respostas em JavaScript.</p>
+        <p><button id="btn-count">Clique-me (<span id="count">0</span>)</button>
+        <button id="btn-reset" class="secondary">Resetar contador</button></p>
+
+        <p><button id="btn-toggle">Alternar tema</button></p>
+        <p id="status" class="small">Tema atual: <strong id="theme-name">claro</strong></p>
+      </div>
+
+      <div class="card" aria-labelledby="form-title">
+        <h2 id="form-title">Formulário (validação)</h2>
+        <form id="contact-form">
+          <label>
+            Nome
+            <input type="text" name="name" required minlength="2" placeholder="Seu nome">
+          </label>
+          <label>
+            E-mail
+            <input type="email" name="email" required placeholder="seu@exemplo.com">
+          </label>
+          <label>
+            Mensagem
+            <textarea name="message" rows="4" placeholder="Mensagem (opcional)"></textarea>
+          </label>
+          <p><button type="submit">Enviar</button></p>
+          <p id="form-msg" class="small hidden" role="status"></p>
+        </form>
+      </div>
+    </section>
+
+    <section style="margin-top:1rem" class="card">
+      <h2>Dados locais</h2>
+      <p class="small">O contador é salvo no <code>localStorage</code> para permanecer entre recarregamentos.</p>
+      <pre id="storage-dump" class="small" style="white-space:pre-wrap;background:#fafafa;padding:.6rem;border-radius:8px;border:1px solid #eee"></pre>
+    </section>
+  </main>
+
+  <footer>
+    Feito como exemplo • Teste HTML — 2025
+  </footer>
+
+  <script>
+    // Contador simples com localStorage
+    const countEl = document.getElementById('count');
+    const btn = document.getElementById('btn-count');
+    const btnReset = document.getElementById('btn-reset');
+    const storageDump = document.getElementById('storage-dump');
+    const themeName = document.getElementById('theme-name');
+
+    let count = Number(localStorage.getItem('teste_count') || 0);
+    function renderCount(){
+      countEl.textContent = count;
+      storageDump.textContent = JSON.stringify(localStorage, null, 2);
+    }
+    renderCount();
+
+    btn.addEventListener('click', ()=>{
+      count++;
+      localStorage.setItem('teste_count', count);
+      renderCount();
+    });
+
+    btnReset.addEventListener('click', ()=>{
+      count = 0;
+      localStorage.setItem('teste_count', count);
+      renderCount();
+    });
+
+    // Tema claro/escuro simples
+    const btnToggle = document.getElementById('btn-toggle');
+    const root = document.documentElement;
+    function setTheme(name){
+      if(name==='escuro'){
+        root.style.setProperty('--bg','#0f1720');
+        root.style.setProperty('--card','#0b1220');
+        root.style.setProperty('--accent','#6ee7b7');
+      } else {
+        root.style.setProperty('--bg','#f6f8f9');
+        root.style.setProperty('--card','#ffffff');
+        root.style.setProperty('--accent','#2b7a78');
+      }
+      localStorage.setItem('teste_theme', name);
+      themeName.textContent = name;
+    }
+    // inicializar tema salvo
+    setTheme(localStorage.getItem('teste_theme') || 'claro');
+    btnToggle.addEventListener('click', ()=>{
+      const current = localStorage.getItem('teste_theme') || 'claro';
+      setTheme(current === 'claro' ? 'escuro' : 'claro');
+    });
+
+    // Formulário com validação HTML + feedback JS
+    const form = document.getElementById('contact-form');
+    const formMsg = document.getElementById('form-msg');
+    form.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      if(!form.checkValidity()){
+        formMsg.classList.remove('hidden');
+        formMsg.textContent = 'Por favor, preencha corretamente os campos obrigatórios.';
+        return;
+      }
+      const data = new FormData(form);
+      // Simula envio: mostra dados no console e mensagem de sucesso
+      const obj = Object.fromEntries(data.entries());
+      console.log('Enviando formulário:', obj);
+      formMsg.classList.remove('hidden');
+      formMsg.textContent = 'Mensagem enviada! (simulado)';
+      form.reset();
+    });
+
+    // Pequeno acessório: mostra localStorage ao abrir (útil para debugging)
+    window.addEventListener('storage', renderCount);
+
+  </script>
+</body>
+</html>
